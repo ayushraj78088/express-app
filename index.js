@@ -1,16 +1,38 @@
 import express from "express";
 import "dotenv/config";
+import logger from "./logger.js";
+import morgan from "morgan";
 
 const port = process.env.PORT || 3000;
 const app = express();
-
 app.use(express.json());
+
+const morganFormat = ":method :url :status :response-time ms";
+
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        const logObject = {
+          method: message.split(" ")[0],
+          url: message.split(" ")[1],
+          status: message.split(" ")[2],
+          responseTime: message.split(" ")[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
 
 let teaData = [];
 let teaId = 1;
 
 // add a tea
 app.post("/teas", (req, res) => {
+  // console.log("POST")
+  logger.info("A post request is made"); // more professional
+  logger.warn("A post request is made");
   const { name, price } = req.body;
   const tea = { id: teaId++, name: name, price: price };
   teaData.push(tea);
